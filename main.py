@@ -34,7 +34,8 @@ def main():
         template=summary_template,
         input_variables=["info"]
     )
-    # model: ChatOpenAI = ChatOpenAI(model="gpt-5.4-mini", temperature=0)
+    #model_name = "gpt-5.4-mini"
+    #model: ChatOpenAI = ChatOpenAI(model=model_name, temperature=0)
     model_name = "gemma3:270m"
     model: ChatOllama = ChatOllama(model=model_name, temperature=0)
     chain: RunnableSequence = prompt | model
