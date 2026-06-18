@@ -5,13 +5,24 @@ from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import Tool, tool
 from langchain_openai import ChatOpenAI
-import json
+from typing import List
+from pydantic import BaseModel, Field
 from langchain_tavily import TavilySearch
+
+class Source(BaseModel):
+    """ schema of the source used by agent"""
+    url:str = Field(description="the url of the source")
+    reason:str = Field(description="reason for selecting the source")
+
+class AgentResponse(BaseModel):
+    """agent response with  answer and sources"""
+    answer:str = Field(description="agent's response")
+    sources: List[Source] = Field(default_factory=list, description="List of sources")
 
 load_dotenv()
 llm: ChatOpenAI = ChatOpenAI(model='gpt-5')
 tools: list[Tool] = [TavilySearch()]
-agent = create_agent(llm, tools)
+agent = create_agent(llm, tools, response_format=AgentResponse)
 
 def main():
     print("starting the search...")
@@ -19,12 +30,12 @@ def main():
         "messages": [
             HumanMessage(
                 content=(
-                    "find 2 recipes using precooked cornmeal for vegan meals"
+                    "find scores for yesterday's football world cup matches that feature an african team"
                 )
             )
         ]
     })
-    print(result["messages"][-1].content)
+    print(result)
 
 
 if __name__ == "__main__":
