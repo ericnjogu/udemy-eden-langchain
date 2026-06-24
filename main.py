@@ -28,16 +28,22 @@ def format_docs(docs):
     """format retrieved documents into a single search string"""
     return "\n\n".join(doc.page_content for doc in docs)
 
+
+def retrieval_chain_without_lce(query:str):
+    """simple retrieval chain without without langchain expression language
+    Manually retrieves docs, formats, generates a response
+    """
+    docs = retriever.invoke(query)
+    context = format_docs(docs)
+    messages = prompt_template.format_messages(context=context, question=query)
+    response = llm.invoke(messages)
+    return response.content
+
+
 if __name__ == '__main__':
     query = "Do you server wine?"
     print('retrieving...')
     print("\n" + '=' * 70)
-    result_raw = llm.invoke([HumanMessage(content=query)])
+    result_raw = retrieval_chain_without_lce(query)
     print("\nAnswer:")
-    print(result_raw.content)
-    """
-    Answer:
-    I do not serve wine as I am a virtual assistant and not a physical establishment. However, I can provide you with 
-    information about different types of wine and 
-    recommendations for pairing wine with meals. Let me know how I can assist you further with wine-related queries.
-    """
+    print(result_raw)
