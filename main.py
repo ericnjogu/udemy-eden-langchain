@@ -1,3 +1,4 @@
+from operator import itemgetter
 import os
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
@@ -6,6 +7,8 @@ from langchain_core.tools import retriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_pinecone import Pinecone, PineconeVectorStore
 from openai.types import embedding
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 load_dotenv()
 
@@ -29,21 +32,25 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
-def retrieval_chain_without_lce(query:str):
-    """simple retrieval chain without without langchain expression language
-    Manually retrieves docs, formats, generates a response
+def retrieval_chain_with_lce():
+    """create a retrieval chain using LCEL
+    returns a chain that can be invoked with {"question": "...."}
     """
-    docs = retriever.invoke(query)
-    context = format_docs(docs)
-    messages = prompt_template.format_messages(context=context, question=query)
-    response = llm.invoke(messages)
-    return response.content
+    retrieval_chain = (
+        RunnablePassthrough.assign(
+            context=itemgetter("question") | retriever | format_docs
+            )
+        | prompt_template
+        | llm
+        | StrOutputParser()
+    )
+    return retrieval_chain
 
 
 if __name__ == '__main__':
-    query = "Do you server wine?"
+    query = "Do you serve wine?"
     print('retrieving...')
     print("\n" + '=' * 70)
-    result_raw = retrieval_chain_without_lce(query)
+    result_raw = retrieval_chain_with_lce().invoke({"question": query})
     print("\nAnswer:")
     print(result_raw)
