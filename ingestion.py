@@ -5,6 +5,7 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from openai.types import embedding
+from constants import INDEX_NAME
 
 load_dotenv()
 
@@ -20,5 +21,6 @@ if __name__ == '__main__':
     embeddings = OpenAIEmbeddings(openai_api_key=os.environ['OPENAI_API_KEY'], 
         model='text-embedding-3-large',dimensions=1024)
 
-    PineconeVectorStore.from_documents(texts, embeddings, index_name=os.environ['INDEX_NAME'])
+    loader = TextLoader(f"{os.environ['TXT_DIR']}/drinks.txt")
+    PineconeVectorStore.from_documents(texts, embeddings, index_name=os.environ.get('INDEX_NAME', INDEX_NAME))
     print('completed ingesting...')
